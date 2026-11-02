@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星穹秘境・塔羅占卜 (Mystic Celestial Tarot)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --color-gold: #f5d77f;
+      --color-gold-glow: rgba(245, 215, 127, 0.4);
+      --color-violet-glow: rgba(168, 85, 247, 0.35);
+    }
+
+    body {
+      font-family: 'Noto Serif TC', serif;
+      background: radial-gradient(ellipse at 50% 20%, #1e113a 0%, #0d081f 50%, #05020c 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-cinzel {
+      font-family: 'Cinzel Decorative', cursive;
+    }
+
+    /* 3D Perspective for Cards */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(13, 8, 31, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(212, 175, 55, 0.7);
+    }
+
+    /* Celestial Glow & Animations */
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(245, 215, 127, 0.25), inset 0 0 15px rgba(245, 215, 127, 0.15);
+    }
+
+    .gold-border {
+      border: 1px solid rgba(245, 215, 127, 0.35);
+    }
+
+    .card-hover-fx {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover-fx:hover {
+      transform: translateY(-20px) scale(1.06);
+      filter: drop-shadow(0 15px 25px rgba(216, 180, 254, 0.5));
+      z-index: 50;
+    }
+
+    @keyframes pulse-halo {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(192, 132, 252, 0.3), 0 0 40px rgba(245, 215, 127, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(192, 132, 252, 0.5), 0 0 60px rgba(245, 215, 127, 0.45);
+      }
+    }
+
+    .pulse-glow {
+      animation: pulse-halo 4s infinite ease-in-out;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .shimmer-text {
+      background: linear-gradient(90deg, #e9d5ff 0%, #fef08a 50%, #e9d5ff 100%);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      animation: shimmer 6s linear infinite;
+    }
+
+    /* Card Back Geometric Pattern */
+    .tarot-back-pattern {
+      background: radial-gradient(circle at 50% 50%, #2e1065 0%, #0f0728 100%);
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(245, 215, 127, 0.15) 1px, transparent 1px),
+        linear-gradient(45deg, rgba(168, 85, 247, 0.08) 25%, transparent 25%, transparent 75%, rgba(168, 85, 247, 0.08) 75%),
+        linear-gradient(-45deg, rgba(168, 85, 247, 0.08) 25%, transparent 25%, transparent 75%, rgba(168, 85, 247, 0.08) 75%);
+      background-size: 16px 16px, 32px 32px, 32px 32px;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between text-slate-100">
+
+  <!-- Background Particle & Nebula Canvas -->
+  <canvas id="nebulaCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Sound Toggle & Toast Notification -->
+  <div class="fixed top-5 right-5 z-50 flex items-center gap-3">
+    <button id="soundToggleBtn" onclick="toggleAudio()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-950/70 border border-purple-500/40 hover:border-amber-300 text-xs text-amber-200 transition-all backdrop-blur-md shadow-lg">
+      <i data-lucide="volume-2" id="soundIcon" class="w-4 h-4"></i>
+      <span id="soundStatusText">音效：開啟</span>
+    </button>
+  </div>
+
+  <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-violet-950/90 border border-amber-300/60 text-amber-100 text-sm shadow-2xl backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
+    <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+    <span id="toastMsg">已複製占卜啟示</span>
+  </div>
+
+  <!-- Header -->
+  <header class="relative z-10 pt-10 pb-4 px-4 text-center">
+    <div class="inline-flex items-center justify-center gap-2 mb-2">
+      <span class="h-px w-12 bg-gradient-to-r from-transparent to-amber-300/60"></span>
+      <span class="text-xs uppercase tracking-[0.3em] text-amber-300/80 font-cinzel">Celestial Oracle</span>
+      <span class="h-px w-12 bg-gradient-to-l from-transparent to-amber-300/60"></span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-black tracking-wider shimmer-text mb-3">星穹秘境・塔羅占卜</h1>
+    <p class="text-sm sm:text-base text-purple-200/70 max-w-xl mx-auto font-light leading-relaxed">
+      洗淨雜念，靜心傾聽靈魂深處的微光。翻開阿爾卡那之門，洞悉命運流轉與宇宙指引。
+    </p>
+  </header>
+
+  <!-- Main Ritual & Reading Stage -->
+  <main class="relative z-10 flex-grow container mx-auto px-4 py-4 max-w-5xl flex flex-col items-center">
+    
+    <!-- STEP 1: Preparation (Question & Spread Selection) -->
+    <section id="prepSection" class="w-full max-w-2xl bg-indigo-950/40 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl pulse-glow mb-6 transition-all duration-500">
+      
+      <!-- Spread Selector -->
+      <label class="block text-xs uppercase tracking-widest text-amber-300/90 mb-3 font-semibold text-center">
+        ✦ 選擇靈性牌陣 ✦
+      </label>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <button type="button" onclick="selectSpread('single')" id="spread-single" class="spread-btn px-4 py-3 rounded-2xl border text-sm font-medium transition-all flex flex-col items-center gap-1.5 bg-purple-900/40 border-amber-400 text-amber-200 shadow-md">
+          <i data-lucide="sparkle" class="w-5 h-5 text-amber-300"></i>
+          <span>每日單牌指引</span>
+          <span class="text-[11px] text-purple-300/70">直覺解答・即時指引</span>
+        </button>
+        <button type="button" onclick="selectSpread('three')" id="spread-three" class="spread-btn px-4 py-3 rounded-2xl border text-sm font-medium transition-all flex flex-col items-center gap-1.5 bg-indigo-950/50 border-purple-500/30 text-purple-200/80 hover:border-purple-400">
+          <i data-lucide="hourglass" class="w-5 h-5 text-purple-300"></i>
+          <span>時間之流三牌陣</span>
+          <span class="text-[11px] text-purple-300/70">過去・現在・未來</span>
+        </button>
+        <button type="button" onclick="selectSpread('love')" id="spread-love" class="spread-btn px-4 py-3 rounded-2xl border text-sm font-medium transition-all flex flex-col items-center gap-1.5 bg-indigo-950/50 border-purple-500/30 text-purple-200/80 hover:border-purple-400">
+          <i data-lucide="heart" class="w-5 h-5 text-rose-300"></i>
+          <span>情感心靈之鏡</span>
+          <span class="text-[11px] text-purple-300/70">自己・對方・羈絆建議</span>
+        </button>
+      </div>
+
+      <!-- Intention / Question Input -->
+      <div class="mb-6">
+        <label for="userQuestion" class="block text-xs uppercase tracking-widest text-amber-300/90 mb-2 font-semibold flex items-center justify-between">
+          <span>✦ 默想或輸入你的問題與意念 ✦</span>
+          <span class="text-[11px] text-purple-300/60 lowercase">optional</span>
+        </label>
+        <div class="relative">
+          <input type="text" id="userQuestion" placeholder="例如：我近期在事業/戀愛上的心靈方向是什麼？" 
+            class="w-full bg-purple-950/60 border border-purple-500/40 focus:border-amber-300/80 rounded-2xl py-3 px-4 text-purple-100 placeholder-purple-400/40 focus:outline-none focus:ring-2 focus:ring-amber-300/20 text-sm sm:text-base transition-all"
+            maxlength="80">
+          <i data-lucide="feather" class="w-4 h-4 text-amber-300/50 absolute right-4 top-3.5"></i>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="startRitual()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 hover:from-amber-300 hover:to-amber-200 text-purple-950 font-bold text-base sm:text-lg tracking-wider transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-amber-400/20 flex items-center justify-center gap-2">
+        <i data-lucide="wand2" class="w-5 h-5"></i>
+        <span>開啟儀式・洗牌感應</span>
+      </button>
+    </section>
+
+    <!-- STEP 2: Interactive Picking Stage (Hidden Initially) -->
+    <section id="deckSection" class="w-full max-w-4xl flex flex-col items-center hidden py-4">
+      <div class="text-center mb-6">
+        <span id="pickInstructionBadge" class="inline-block px-4 py-1.5 rounded-full bg-purple-900/60 border border-amber-300/40 text-amber-200 text-xs tracking-wider mb-2">
+          ✦ 靜心調息，憑直覺抽取 1 張牌 ✦
+        </span>
+        <h3 id="currentQuestionDisplay" class="text-lg text-purple-100 font-medium italic"></h3>
+      </div>
+
+      <!-- Fan / Deck of Cards -->
+      <div id="deckFanContainer" class="w-full h-72 sm:h-80 relative flex items-center justify-center overflow-x-auto overflow-y-visible px-4 py-8">
+        <!-- Interactive Arc Generated via JS -->
+      </div>
+
+      <!-- Picked status slot counter -->
+      <div id="selectedSlotsDisplay" class="flex gap-4 items-center justify-center mt-6">
+        <!-- Slots indicators injected by JS -->
+      </div>
+    </section>
+
+    <!-- STEP 3: Reading Reveal Section (Hidden Initially) -->
+    <section id="readingSection" class="w-full max-w-4xl hidden flex-col items-center">
+      
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-400/10 border border-amber-300/30 text-amber-300 text-xs mb-2">
+          <i data-lucide="stars" class="w-3.5 h-3.5"></i>
+          <span>星象啟示已然顯現</span>
+        </div>
+        <h2 id="readingQuestionHeadline" class="text-xl sm:text-2xl text-purple-100 font-bold"></h2>
+      </div>
+
+      <!-- Display Cards (Spread Grid) -->
+      <div id="cardsDisplayContainer" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-10">
+        <!-- Revealed card components inserted here -->
+      </div>
+
+      <!-- Comprehensive Synthesis / Reflection Box -->
+      <div class="w-full bg-purple-950/40 border border-purple-500/30 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-2xl mb-10 gold-glow">
+        <div class="flex items-center gap-3 mb-4 text-amber-300">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <h3 class="text-lg font-bold tracking-wide">星穹心靈指引・總結</h3>
+        </div>
+        <p id="spreadSynthesisText" class="text-purple-100/90 leading-relaxed text-sm sm:text-base font-light mb-4"></p>
+        <div class="pt-4 border-t border-purple-500/20 flex flex-wrap gap-2 text-xs text-purple-300/70" id="readingKeywords"></div>
+      </div>
+
+      <!-- Action Bottom Bar -->
+      <div class="flex flex-wrap items-center justify-center gap-4 w-full">
+        <button onclick="copyReadingSummary()" class="px-6 py-3 rounded-2xl bg-indigo-900/60 hover:bg-indigo-800/80 border border-purple-400/40 text-amber-200 text-sm font-medium transition-all flex items-center gap-2 shadow-md">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>複製占卜解讀</span>
+        </button>
+        <button onclick="resetReading()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-purple-950 text-sm font-bold transition-all flex items-center gap-2 shadow-md hover:scale-105">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span>重新占卜</span>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Card Detail Modal -->
+  <div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-gradient-to-b from-indigo-950 to-purple-950 border border-amber-300/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal()" class="absolute top-5 right-5 text-purple-300 hover:text-amber-300 p-2 rounded-full hover:bg-purple-900/50 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative z-10 py-6 text-center text-xs text-purple-400/50">
+    <p>© 2026 星穹秘境・牌意象徵源自傳統萊德偉特大阿爾卡那・願星光常伴心側</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /* =========================================================================
+       1. Major Arcana 22 Cards Database (Full Details, Upright & Reversed)
+       ========================================================================= */
+    const TAROT_CARDS = [
+      {
+        id: 0,
+        roman: "0",
+        name: "愚者",
+        eng: "The Fool",
+        icon: "compass",
+        symbol: "✦",
+        planet: "天王星・風象",
+        upright: {
+          title: "純真出發・無窮潛能",
+          keywords: ["純真冒險", "隨心出發", "嶄新篇章", "自由靈魂", "勇氣"],
+          meaning: "象徵站在懸崖邊隨時邁向新世界的自由。忘卻過去的包袱與理性設限，相信直覺並以赤子之心踏出未知的第一步，宇宙隨時為你鋪路。",
+          advice: "抱持隨緣與開放的態度，不懼未知，此時正是開啟新計劃或旅程的絕佳時機。"
+        },
+        reversed: {
+          title: "盲目冒險・猶豫徬徨",
+          keywords: ["魯莽行事", "忽視風險", "逃避現實", "舉棋不定"],
+          meaning: "提示目前可能有些過於衝動、缺乏計畫，或因過度害怕犯錯而停滯不前。自由過度可能淪為不負責任。",
+          advice: "行動前多看清腳下現實，在追逐熱情的同時擬定明確的備用方案。"
+        }
+      },
+      {
+        id: 1,
+        roman: "I",
+        name: "魔術師",
+        eng: "The Magician",
+        icon: "wand",
+        symbol: "∞",
+        planet: "水星・風火靈性",
+        upright: {
+          title: "顯化法則・萬事俱備",
+          keywords: ["創造力", "顯化願望", "溝通專注", "掌握資源", "行動力"],
+          meaning: "頭頂無窮符號，手中掌握四大元素。你已具備將想法化為現實的一切資源與能力，只要專注投入，奇蹟便能具象化。",
+          advice: "善用你的才華與溝通魅力，主動掌控節奏，把靈感迅速落實成形。"
+        },
+        reversed: {
+          title: "力量錯用・資源不足",
+          keywords: ["缺乏自信", "花言巧語", "意圖不純", "眼高手低"],
+          meaning: "象徵才華受到壓抑，或技巧被用在錯誤、不誠實的途徑上；也可能是缺乏足夠的準備便急於展現。",
+          advice: "真誠面對內在動機，回歸初心充實自我，切勿走捷徑欺瞞他人或自己。"
+        }
+      },
+      {
+        id: 2,
+        roman: "II",
+        name: "女祭司",
+        eng: "The High Priestess",
+        icon: "scroll",
+        symbol: "☾",
+        planet: "月亮・水象直覺",
+        upright: {
+          title: "沉靜智慧・直覺靈犀",
+          keywords: ["內在直覺", "潛意識", "沉思智慧", "神秘洞察", "平靜"],
+          meaning: "身坐於黑白雙柱之間，守護神秘智慧。此刻不必對外喧嘩爭辯，答案早已靜臥於你的心靈深處。聆聽夢境與第六感。",
+          advice: "保持靜心與觀察，信任你的直覺預感，給自己留出獨處與冥想的時光。"
+        },
+        reversed: {
+          title: "忽視直覺・內心紛擾",
+          keywords: ["焦躁猜疑", "直覺閉塞", "過度冷漠", "逃避深層自我"],
+          meaning: "暗示你可能被外在瑣事所迷惑，切斷了與內心的連結，或產生過多猜忌與表面冷淡。",
+          advice: "遠離外在雜音，找回內在平衡，別讓猜疑遮蔽了真正的判斷力。"
+        }
+      },
+      {
+        id: 3,
+        roman: "III",
+        name: "皇后",
+        eng: "The Empress",
+        icon: "crown",
+        symbol: "♀",
+        planet: "金星・豐饒大地",
+        upright: {
+          title: "豐饒滋養・溫暖綻放",
+          keywords: ["豐盛繁榮", "母性包容", "感官享受", "創造滋長", "和諧"],
+          meaning: "象徵大地的母性、愛與繁榮。感情和諧溫馨，創作或事業正處於開花結果的孕育期，生活充滿感官的美好享受。",
+          advice: "善待自己的身心，給予身邊人溫柔包容，讓事情在愛與滋養中自然成熟。"
+        },
+        reversed: {
+          title: "過度索求・創造枯竭",
+          keywords: ["過度保護", "情緒依賴", "忽視自我", "創造力受阻"],
+          meaning: "可能過度照顧他人而耗盡自己，或在關係中產生控制與依賴情緒；亦可能代表生活失衡或缺乏自信。",
+          advice: "先學會愛護自己並設定健康界限，適度放手才能讓彼此自在呼吸。"
+        }
+      },
+      {
+        id: 4,
+        roman: "IV",
+        name: "皇帝",
+        eng: "The Emperor",
+        icon: "shield",
+        symbol: "♈",
+        planet: "牡羊座・穩定秩序",
+        upright: {
+          title: "結構穩固・領導意志",
+          keywords: ["威嚴領導", "穩固架構", "紀律秩序", "責任擔當", "掌控"],
+          meaning: "端坐於石座之上，象徵堅定不移的規則與權力。代表理性的決策力、組織管理與為承諾扛起責任的堅強後盾。",
+          advice: "運用邏輯與條理規劃生活，建立穩定常規，果斷做出必要的決策。"
+        },
+        reversed: {
+          title: "僵化專制・失控無助",
+          keywords: ["固執專制", "缺乏彈性", "權力濫用", "缺乏自律"],
+          meaning: "可能過於死板、控制慾過強，或反過來因為缺乏紀律而讓周遭事務陷入混亂。",
+          advice: "放下無謂的支配慾，學會傾聽與彈性應對，以包容取代高壓管控。"
+        }
+      },
+      {
+        id: 5,
+        roman: "V",
+        name: "教皇",
+        eng: "The Hierophant",
+        icon: "book-open",
+        symbol: "♉",
+        planet: "金牛座・心靈引領",
+        upright: {
+          title: "精神指引・傳統智慧",
+          keywords: ["精神導師", "道德倫理", "傳統體系", "尋求指引", "群體共鳴"],
+          meaning: "代表靈魂的導師與正統智慧。當你困惑時，長輩、專業導師或既有的典章規範將給予你深遠而穩妥的方向。",
+          advice: "多向前輩或值得信賴的專家請益，依循良善的準則行事，可參與正面社群。"
+        },
+        reversed: {
+          title: "打破陳規・盲信盲從",
+          keywords: ["思想僵化", "違抗傳統", "假導師", "探索個人真理"],
+          meaning: "代表對舊有框架或教條感到窒息，需要開闢屬於自己的信仰；亦須警惕表面道貌岸然的虛假建議。",
+          advice: "質疑不合時宜的教條，遵從內心真正認同的價值觀，不再迎合眾人期望。"
+        }
+      },
+      {
+        id: 6,
+        roman: "VI",
+        name: "戀人",
+        eng: "The Lovers",
+        icon: "heart-handshake",
+        symbol: "♊",
+        planet: "雙子座・心靈契合",
+        upright: {
+          title: "靈魂相吸・價值抉擇",
+          keywords: ["真摯愛戀", "和諧關係", "價值選擇", "靈魂契合", "信任"],
+          meaning: "天使在上方賜福，象徵深深的吸引力與心靈契合。同時也象徵人生面臨一項關鍵的價值抉擇，必須聽隨本心而非世俗。",
+          advice: "以誠實與同理對待重要關係；做選擇時，選擇能使靈魂真正擴展與自在的一方。"
+        },
+        reversed: {
+          title: "溝通歧異・價值衝突",
+          keywords: ["心口不一", "關係裂痕", "錯誤抉擇", "誘惑迷失"],
+          meaning: "感情或合作夥伴間產生誤解與步調不一，可能受困於誘惑或缺乏承諾的曖昧狀態。",
+          advice: "真誠開展溝通，確認彼此的核心價值是否契合，切勿為了表面和平違背底線。"
+        }
+      },
+      {
+        id: 7,
+        roman: "VII",
+        name: "戰車",
+        eng: "The Chariot",
+        icon: "flag",
+        symbol: "♋",
+        planet: "巨蟹座・意志前行",
+        upright: {
+          title: "意志專注・克敵制勝",
+          keywords: ["目標明確", "自我控制", "克服障礙", "勢如破竹", "毅力"],
+          meaning: "黑白斯芬克斯代表內心相悖的力量，透過純粹的意志力掌控節奏、向前奔馳。所有挑戰都將被你的堅定所克服。",
+          advice: "將所有精力聚焦在核心目標上，排除雜念，保持自信直奔勝利。"
+        },
+        reversed: {
+          title: "失控脫軌・方向迷失",
+          keywords: ["急躁冒進", "受阻挫折", "失控焦慮", "好勝成狂"],
+          meaning: "推進過急導致局勢失控，或是內心相互矛盾撕裂了前進的動力，盲目硬碰硬只會換來疲憊。",
+          advice: "暫時踩住剎車，重新調校前進的方向與情緒，切忌在情緒失控時做決定。"
+        }
+      },
+      {
+        id: 8,
+        roman: "VIII",
+        name: "力量",
+        eng: "Strength",
+        icon: "smile",
+        symbol: "♌",
+        planet: "獅子座・以柔克剛",
+        upright: {
+          title: "溫柔堅定・以愛馴服",
+          keywords: ["內在韌性", "以柔克剛", "情緒包容", "勇氣自持", "真誠耐心"],
+          meaning: "頭戴無限之冠的女子溫柔撫摸雄獅。真正的力量不是蠻橫壓制，而是由內而外的包容、耐心與自我接納。",
+          advice: "面對憤怒或困局，用溫柔和理解化解敵意，相信自己有足夠的耐心渡過難關。"
+        },
+        reversed: {
+          title: "內在懷疑・被情緒吞噬",
+          keywords: ["自信不足", "情緒爆發", "軟弱動搖", "失去耐心"],
+          meaning: "被恐懼、怒氣或自卑感所吞噬，懷疑自己的價值，容易在關鍵時刻退縮或做出過激反應。",
+          advice: "給予自己慈悲，接納軟弱是人之常情，找回深層的自我信任。"
+        }
+      },
+      {
+        id: 9,
+        roman: "IX",
+        name: "隱士",
+        eng: "The Hermit",
+        icon: "sparkles",
+        symbol: "♍",
+        planet: "處女座・內求覺醒",
+        upright: {
+          title: "孤獨明燈・靈魂追尋",
+          keywords: ["獨處自省", "內在指引", "哲學沈思", "指路明燈", "追尋真理"],
+          meaning: "手提真理之燈走在雪山之巔。這不是孤立，而是遠離喧囂以探求生命核心真理的崇高旅程。你自能成為自己的指路明燈。",
+          advice: "為自己爭取獨處靜默的時間，向內探索。真正的答案從不需要外界的認可。"
+        },
+        reversed: {
+          title: "孤僻閉門・自困自憐",
+          keywords: ["過度封閉", "抗拒建議", "迷茫寂寞", "憤世嫉俗"],
+          meaning: "將自省變成了孤立自己的圍牆，過於抗拒外界關心，陷入孤寂或偏執的思維死角。",
+          advice: "適度敞開胸懷，接受周遭溫暖的援助，別讓孤獨成為逃避世界的藉口。"
+        }
+      },
+      {
+        id: 10,
+        roman: "X",
+        name: "命運之輪",
+        eng: "Wheel of Fortune",
+        icon: "disc",
+        symbol: "♃",
+        planet: "木星・因果流轉",
+        upright: {
+          title: "時來運轉・順應天時",
+          keywords: ["命運轉捩", "因果流轉", "幸運契機", "順應變化", "新週期"],
+          meaning: "命運之輪無始無終地轉動，低谷即將迎來高峰。順應天時與宇宙的節奏，把握突如其來的機遇與貴人相助。",
+          advice: "擁抱生命中的不可預測性，保持正向樂觀，運勢正在向好的方向逆轉。"
+        },
+        reversed: {
+          title: "遭遇瓶頸・抗拒變遷",
+          keywords: ["運氣短暫受阻", "抗拒轉變", "舊習重演", "無力感"],
+          meaning: "可能面臨突如其來的波折，或因為死守過去的習慣而反覆經歷同樣的挫敗感。",
+          advice: "接受暫時的低潮，檢視自己是否一直在相同的盲點打轉，學會放手讓業力淨化。"
+        }
+      },
+      {
+        id: 11,
+        roman: "XI",
+        name: "正義",
+        eng: "Justice",
+        icon: "scale",
+        symbol: "♎",
+        planet: "天秤座・平衡因果",
+        upright: {
+          title: "公正裁量・因果明鏡",
+          keywords: ["公平客觀", "因果報應", "理性決策", "誠實坦蕩", "求取平衡"],
+          meaning: "一手持天秤衡量是非，一手舉寶劍斬斷虛妄。所有決定都將帶來相應的果報，誠實與公正將保護你的權益。",
+          advice: "放下情緒偏見，以最高誠信和理性做出選擇，為自己的每一個行為負責。"
+        },
+        reversed: {
+          title: "失衡偏頗・規避責任",
+          keywords: ["不公對待", "自我欺騙", "偏見行事", "不敢承擔"],
+          meaning: "感到被不公正對待，或是自己有意無意在掩蓋真相、推卸責任，導致天秤傾斜。",
+          advice: "勇敢面對過錯，承擔後果才能修復平衡，切勿掩耳盜鈴。"
+        }
+      },
+      {
+        id: 12,
+        roman: "XII",
+        name: "倒吊人",
+        eng: "The Hanged Man",
+        icon: "anchor",
+        symbol: "♆",
+        planet: "海王星・換位覺察",
+        upright: {
+          title: "順服放下・顛覆視角",
+          keywords: ["換位思考", "靈性臣服", "暫停沈澱", "自我奉獻", "覺悟開朗"],
+          meaning: "頭部環繞神聖光環，雖然雙腳受縛卻神情安詳。唯有停止無謂的掙扎，學會換個完全顛倒的視角看世界，覺悟便由此降臨。",
+          advice: "暫時放下掌控慾，現在不是盲目衝撞的時候。在靜止中醞釀新的生命維度。"
+        },
+        reversed: {
+          title: "徒勞掙扎・無謂犧牲",
+          keywords: ["不願放手", "無益犧牲", "自怨自艾", "原地踏步"],
+          meaning: "在無意義的痛苦中扮演受害者，明明可以解脫卻固執不放，做出的犧牲沒有換來成長。",
+          advice: "問問自己這份堅持是否值得，果斷解開枷鎖，走出精神內耗。"
+        }
+      },
+      {
+        id: 13,
+        roman: "XIII",
+        name: "死神",
+        eng: "Death",
+        icon: "skull",
+        symbol: "♏",
+        planet: "天蠍座・蛻變重生",
+        upright: {
+          title: "舊章終結・破繭新生",
+          keywords: ["終結告別", "徹底蛻變", "鳳凰涅槃", "釋懷過去", "嶄新篇章"],
+          meaning: "死神並非指肉體死亡，而是不可逆轉的質變。枯枝落葉化作春泥，唯有徹底放手凋零的人事物，新生黎明才能照亮大地。",
+          advice: "不要害怕告別與告終，優雅地轉身，宇宙正騰出更寬廣的空間迎接新生。"
+        },
+        reversed: {
+          title: "抗拒結束・苟延殘喘",
+          keywords: ["害怕改變", "執迷舊愛/舊事", "停滯腐朽", "不敢放手"],
+          meaning: "明知某些模式早已死亡腐朽，卻因恐懼未知而死抓不放，讓痛苦拖得更加漫長。",
+          advice: "抗拒改變只會帶來更多痛苦，深呼吸，允許舊事物體面退場。"
+        }
+      },
+      {
+        id: 14,
+        roman: "XIV",
+        name: "節制",
+        eng: "Temperance",
+        icon: "droplets",
+        symbol: "♐",
+        planet: "射手座・調和淬煉",
+        upright: {
+          title: "靈性調和・療癒平衡",
+          keywords: ["中庸和諧", "身心療癒", "耐心融合", "能量流動", "淬煉升華"],
+          meaning: "天使在兩杯水之間精準流轉甘露，腳踏清流與沃土。代表將兩股相悖的極端能量化作甘醇的智慧，身心處於神聖的療癒期。",
+          advice: "凡事勿走極端，尋求中庸與耐心，讓事情在細水長流中達成最好的融合。"
+        },
+        reversed: {
+          title: "失衡過度・溝通卡頓",
+          keywords: ["生活失衡", "急躁易怒", "衝突摩擦", "過度放縱"],
+          meaning: "飲食、工作或感情生活出現失控與極端，缺乏耐心與傾聽，容易在人際間引發摩擦。",
+          advice: "及時檢視生活作息與情緒反應，把多餘的慾望濾除，找回平和的節奏。"
+        }
+      },
+      {
+        id: 15,
+        roman: "XV",
+        name: "惡魔",
+        eng: "The Devil",
+        icon: "flame",
+        symbol: "♑",
+        planet: "魔羯座・誘惑枷鎖",
+        upright: {
+          title: "慾望執念・幻象枷鎖",
+          keywords: ["物質誘惑", "強烈執念", "自我束縛", "盲目沉溺", "陰影整合"],
+          meaning: "男女脖子上的鐵鏈其實很寬鬆，代表束縛並非外在強加，而是源於內心對物質、名利或關係的成癮與恐懼。",
+          advice: "誠實看清自己正在依賴或執著什麼，只要你願意，隨時可以拿下頸上的枷鎖。"
+        },
+        reversed: {
+          title: "掙脫束縛・覺醒釋放",
+          keywords: ["打破成癮", "重獲自由", "看穿幻象", "奪回主權"],
+          meaning: "你正在從長期的精神控制、不良習慣或有毒關係中清醒過來，準備迎向獨立與自由。",
+          advice: "堅定斬斷有毒的糾纏，信任自己的內在力量，你正在重獲自由。"
+        }
+      },
+      {
+        id: 16,
+        roman: "XVI",
+        name: "高塔",
+        eng: "The Tower",
+        icon: "zap",
+        symbol: "♂",
+        planet: "火星・雷霆重擊",
+        upright: {
+          title: "雷霆震撼・打破虛假",
+          keywords: ["突發劇變", "幻象破滅", "震撼覺醒", "推倒重來", "宇宙清理"],
+          meaning: "閃電擊中高聳的傲慢之塔。看似殘酷的震盪，實則是宇宙替你摧毀早已腐朽脆弱的根基，讓虛妄的謊言無所遁形。",
+          advice: "不要試圖挽救搖搖欲墜的虛像，順從瓦解，在廢墟上才能築起真正牢固的生命殿堂。"
+        },
+        reversed: {
+          title: "逃避崩塌・餘波未平",
+          keywords: ["勉強支撐", "恐懼恐慌", "苟延殘喘", "內在震盪"],
+          meaning: "試圖掩蓋即將爆發的危機，或者災難雖未直接摧毀一切，但心中的恐慌與焦慮仍在暗流湧動。",
+          advice: "主動去面對問題的核心，別等著事情被動引爆，誠實面對勝過長久擔驚受怕。"
+        }
+      },
+      {
+        id: 17,
+        roman: "XVII",
+        name: "星星",
+        eng: "The Star",
+        icon: "star",
+        symbol: "♒",
+        planet: "水瓶座・純澈希望",
+        upright: {
+          title: "希望泉源・靈性治癒",
+          keywords: ["燃起希望", "靈魂療癒", "靈感泉湧", "純真寧靜", "星光指引"],
+          meaning: "經歷風暴後天空中亮起的一等星。泉水潺潺滋養大地，預示著內心創傷得到平撫，前路再次灑滿希望與靈感之光。",
+          advice: "堅定對未來的信念，敞開心扉接納宇宙的禮物，你的願望正受到星辰的護佑。"
+        },
+        reversed: {
+          title: "希望渺茫・信心枯竭",
+          keywords: ["悲觀沮喪", "失去信仰", "自我封閉", "才思枯竭"],
+          meaning: "暫時被烏雲遮蔽了眼眸，懷疑美好不會降臨在自己身上，對未來產生了深深的無力感。",
+          advice: "即便黑夜漫長，星星始終都在。先照顧好受傷的心情，重新連結讓你感到溫暖的小事。"
+        }
+      },
+      {
+        id: 18,
+        roman: "XVIII",
+        name: "月亮",
+        eng: "The Moon",
+        icon: "moon",
+        symbol: "♓",
+        planet: "雙魚座・迷霧潛意識",
+        upright: {
+          title: "迷霧潛意識・幻象未明",
+          keywords: ["不安焦慮", "隱秘未知", "情緒起伏", "潛意識夢境", "迷茫路途"],
+          meaning: "月光下狼與犬對月長嘯，龍蝦自深水爬出。象徵事情尚未明朗，容易被內心的恐懼、妄想與不安情緒所左右。",
+          advice: "不要在此時匆忙做重大決定，留心事情背後隱藏的未公開訊息，安撫自己的焦慮。"
+        },
+        reversed: {
+          title: "撥雲見日・真相大白",
+          keywords: ["迷霧散去", "恐懼消退", "看清真相", "走出陰霾"],
+          meaning: "遮擋前路的濃霧逐漸消散，隱藏的秘密或謊言浮出水面，心靈的不安感正被踏實的現實所取代。",
+          advice: "迎接真相帶來的解脫，勇敢走出心理陰影，迎接明媚陽光。"
+        }
+      },
+      {
+        id: 19,
+        roman: "XIX",
+        name: "太陽",
+        eng: "The Sun",
+        icon: "sun",
+        symbol: "☉",
+        planet: "太陽・純陽生機",
+        upright: {
+          title: "光明璀璨・喜悅成功",
+          keywords: ["光明溫暖", "蓬勃活力", "圓滿成功", "純粹喜悅", "萬象明朗"],
+          meaning: "孩童騎著白馬沐浴在盛大日光下。這是整副牌中最吉祥明朗的象徵，萬事亨通、自信昂揚，所有的陰暗與顧慮都將煙消雲散。",
+          advice: "盡情展現你的魅力與熱情，大膽享受勝利與喜悅，將這份溫暖分享給周圍的人。"
+        },
+        reversed: {
+          title: "暫時陰霾・過度自滿",
+          keywords: ["遲來的成功", "短暫陰雲", "過度樂觀", "精力耗損"],
+          meaning: "陽光依舊存在，只是短暫被薄雲遮擋；亦或是因為過於盲目自信而忽略了細微的現實挑戰。",
+          advice: "保持耐心與感恩心，即便進度稍有延遲，成功的光芒終究不會缺席。"
+        }
+      },
+      {
+        id: 20,
+        roman: "XX",
+        name: "審判",
+        eng: "Judgement",
+        icon: "bell",
+        symbol: "♇",
+        planet: "冥王星・靈魂召喚",
+        upright: {
+          title: "天啟召喚・覺醒重生",
+          keywords: ["靈魂召喚", "深刻覺醒", "大徹大悟", "重獲新生", "重大轉機"],
+          meaning: "大天使吹響號角，沉睡的心靈破棺而起。生命正在向你發出不可迴避的高維召喚，跨越過往業力，踏上靈魂的升級之路。",
+          advice: "勇敢回應內心深處的真正志向，告別陳舊的生活模式，這是一次蛻變重生的機會。"
+        },
+        reversed: {
+          title: "抗拒召喚・悔恨自責",
+          keywords: ["逃避現實", "自我批判", "錯失良機", "猶豫不決"],
+          meaning: "深陷於過往的遺憾與自我責怪中，害怕承擔新的責任，因而遲疑不敢回應內心的呼喚。",
+          advice: "寬恕過去那個不成熟的自己，停止自責，唯有放過過去，才能迎上命運的轉折點。"
+        }
+      },
+      {
+        id: 21,
+        roman: "XXI",
+        name: "世界",
+        eng: "The World",
+        icon: "globe",
+        symbol: "♄",
+        planet: "土星・終極圓滿",
+        upright: {
+          title: "終極圓滿・宇宙合一",
+          keywords: ["大功告成", "圓滿如意", "旅行遠行", "境界昇華", "身心合一"],
+          meaning: "舞者在月桂花環中心翩然起舞，四大天使環繞守護。一個重要的人生大週期抵達完美終點，身心靈獲得全然的和諧與肯定。",
+          advice: "欣喜享受豐碩的成果，為自己的堅持有由衷感到驕傲，準備邁向下一個更高層次的旅途。"
+        },
+        reversed: {
+          title: "尚欠一著・即將完成",
+          keywords: ["差最後一步", "缺乏收尾", "旅途耽擱", "滿足感不足"],
+          meaning: "事情已接近成功，但總覺得少了關鍵的一塊拼圖，或是因為缺乏收尾的耐心而使圓滿稍稍延遲。",
+          advice: "堅持走完最後一哩路，把細節修繕完整，不要在終點線前輕言放棄。"
+        }
+      }
+    ];
+
+    /* =========================================================================
+       2. Spread Configuration
+       ========================================================================= */
+    const SPREADS = {
+      single: {
+        id: "single",
+        name: "每日單牌指引",
+        count: 1,
+        roles: ["宇宙當下指引"]
+      },
+      three: {
+        id: "three",
+        name: "時間之流三牌陣",
+        count: 3,
+        roles: ["【過去】根源與影響", "【現在】核心現況", "【未來】趨向與指引"]
+      },
+      love: {
+        id: "love",
+        name: "情感心靈之鏡",
+        count: 3,
+        roles: ["【心之本體】你的心境與真實渴求", "【對象之影】對方的投射與能量狀態", "【合一之道】雙方的關鍵契機與神聖指引"]
+      }
+    };
+
+    let currentSpreadKey = 'single';
+    let currentQuestion = '';
+    let selectedCards = []; // Array of { cardData, isReversed, role }
+    let isDrawing = false;
+    let audioEnabled = true;
+
+    /* =========================================================================
+       3. Web Audio Celestial Sound Synthesizer
+       ========================================================================= */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playCelestialChime(freq = 528, duration = 1.6, type = 'sine') {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        // Exponential frequency decay for chime sparkle
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(freq, now + 0.4);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.warn("Audio error", e);
+      }
+    }
+
+    function playShuffleSound() {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        const notes = [432, 528, 639, 741, 852];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            playCelestialChime(freq, 0.8, 'triangle');
+          }, idx * 70);
+        });
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const icon = document.getElementById('soundIcon');
+      const text = document.getElementById('soundStatusText');
+      if (audioEnabled) {
+        initAudio();
+        playCelestialChime(659, 1);
+        text.innerText = "音效：開啟";
+        icon.setAttribute('data-lucide', 'volume-2');
+      } else {
+        text.innerText = "音效：靜音";
+        icon.setAttribute('data-lucide', 'volume-x');
+      }
+      lucide.createIcons();
+    }
+
+    /* =========================================================================
+       4. Canvas Particle Nebula Ambience
+       ========================================================================= */
+    const canvas = document.getElementById('nebulaCanvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initStars();
+    }
+
+    function initStars() {
+      stars = [];
+      const numStars = Math.floor((canvas.width * canvas.height) / 8000);
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.3,
+          alpha: Math.random() * 0.8 + 0.2,
+          speed: Math.random() * 0.008 + 0.003,
+          phase: Math.random() * Math.PI * 2,
+          color: Math.random() > 0.4 ? '#fef08a' : (Math.random() > 0.5 ? '#e9d5ff' : '#bae6fd')
+        });
+      }
+    }
+
+    function renderNebula() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw subtle twinkling stars
+      stars.forEach(star => {
+        star.phase += star.speed;
+        const currentAlpha = (Math.sin(star.phase) + 1) / 2 * star.alpha;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = star.color;
+        ctx.globalAlpha = currentAlpha;
+        ctx.shadowBlur = star.radius > 1 ? 6 : 0;
+        ctx.shadowColor = star.color;
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      requestAnimationFrame(renderNebula);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    /* =========================================================================
+       5. Interaction & Ritual Workflow
+       ========================================================================= */
+    function selectSpread(spreadKey) {
+      currentSpreadKey = spreadKey;
+      playCelestialChime(440, 0.4);
+      document.querySelectorAll('.spread-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-900/40', 'border-amber-400', 'text-amber-200');
+        btn.classList.add('bg-indigo-950/50', 'border-purple-500/30', 'text-purple-200/80');
+      });
+
+      const activeBtn = document.getElementById(`spread-${spreadKey}`);
+      activeBtn.classList.remove('bg-indigo-950/50', 'border-purple-500/30', 'text-purple-200/80');
+      activeBtn.classList.add('bg-purple-900/40', 'border-amber-400', 'text-amber-200');
+    }
+
+    function startRitual() {
+      initAudio();
+      playShuffleSound();
+
+      const qInput = document.getElementById('userQuestion');
+      currentQuestion = qInput.value.trim() || "探索當前生命頻率與指引";
+      selectedCards = [];
+      isDrawing = false;
+
+      // Switch views
+      document.getElementById('prepSection').classList.add('hidden');
+      document.getElementById('deckSection').classList.remove('hidden');
+
+      document.getElementById('currentQuestionDisplay').innerText = `「 ${currentQuestion} 」`;
+      updateSelectionProgress();
+      renderDeckFan();
+    }
+
+    function updateSelectionProgress() {
+      const spread = SPREADS[currentSpreadKey];
+      const remaining = spread.count - selectedCards.length;
+      const badge = document.getElementById('pickInstructionBadge');
+      const slotsContainer = document.getElementById('selectedSlotsDisplay');
+
+      if (remaining > 0) {
+        badge.innerHTML = `✦ 請直覺挑選第 <span class="font-bold text-amber-300">${selectedCards.length + 1}</span> 張牌（剩餘 ${remaining} 張）✦`;
+      } else {
+        badge.innerHTML = `✦ 牌陣已圓滿契合，引導啟示中... ✦`;
+      }
+
+      // Render mini slots indicators
+      slotsContainer.innerHTML = '';
+      for (let i = 0; i < spread.count; i++) {
+        const isPicked = i < selectedCards.length;
+        const slotEl = document.createElement('div');
+        slotEl.className = `px-3 py-1.5 rounded-xl border text-xs flex items-center gap-2 transition-all duration-300 ${
+          isPicked 
+            ? 'bg-amber-400/20 border-amber-400 text-amber-200 scale-105' 
+            : 'bg-purple-950/30 border-purple-500/30 text-purple-400/60'
+        }`;
+        slotEl.innerHTML = `
+          <i data-lucide="${isPicked ? 'check-circle' : 'circle'}" class="w-3.5 h-3.5"></i>
+          <span>${spread.roles[i]}</span>
+        `;
+        slotsContainer.appendChild(slotEl);
+      }
+      lucide.createIcons();
+    }
+
+    /* Render interactive 22 cards Arc in Fan */
+    function renderDeckFan() {
+      const container = document.getElementById('deckFanContainer');
+      container.innerHTML = '';
+
+      // Random pool of available indices
+      const availableIndices = Array.from({ length: 22 }, (_, i) => i)
+        .sort(() => Math.random() - 0.5);
+
+      const totalCards = 22;
+      const fanAngleRange = 60; // Spread arc degrees
+      const stepAngle = fanAngleRange / (totalCards - 1);
+      const startAngle = -(fanAngleRange / 2);
+
+      availableIndices.forEach((cardPoolIndex, idx) => {
+        const cardAngle = startAngle + idx * stepAngle;
+        const translateY = Math.abs(cardAngle) * 0.9;
+
+        const cardWrapper = document.createElement('div');
+        cardWrapper.className = `absolute cursor-pointer transition-all duration-300 select-none`;
+        cardWrapper.style.transform = `rotate(${cardAngle}deg) translateY(${translateY}px)`;
+        cardWrapper.style.left = `calc(50% - 36px + ${(idx - 10.5) * 22}px)`;
+        cardWrapper.style.transformOrigin = 'bottom center';
+        cardWrapper.style.zIndex = idx + 1;
+
+        cardWrapper.innerHTML = `
+          <div class="card-hover-fx w-20 sm:w-24 h-32 sm:h-36 rounded-xl tarot-back-pattern gold-border p-1 shadow-xl flex flex-col justify-between items-center text-center">
+            <div class="w-full flex justify-between px-1 text-[9px] text-amber-200/50">✦ ✦</div>
+            <div class="w-8 h-8 rounded-full border border-amber-300/40 flex items-center justify-center text-amber-300/70">
+              <i data-lucide="sun-medium" class="w-4 h-4"></i>
+            </div>
+            <div class="text-[9px] tracking-widest text-amber-300/60 font-cinzel">TAROT</div>
+          </div>
+        `;
+
+        cardWrapper.onclick = () => handleCardPick(cardWrapper, cardPoolIndex);
+        container.appendChild(cardWrapper);
+      });
+      lucide.createIcons();
+    }
+
+    function handleCardPick(element, cardIndex) {
+      if (isDrawing) return;
+      const spread = SPREADS[currentSpreadKey];
+      if (selectedCards.length >= spread.count) return;
+
+      isDrawing = true;
+      playCelestialChime(580 + selectedCards.length * 120, 1.2);
+
+      // Upright or reversed determination (approx 30% reversed for balanced mystical touch)
+      const isReversed = Math.random() < 0.32;
+      const role = spread.roles[selectedCards.length];
+      const cardData = TAROT_CARDS[cardIndex];
+
+      selectedCards.push({ cardData, isReversed, role });
+
+      // Visual animation on chosen card
+      element.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+      element.style.transform = 'translateY(-60px) scale(1.2) rotate(0deg)';
+      element.style.opacity = '0';
+      element.style.pointerEvents = 'none';
+
+      updateSelectionProgress();
+
+      setTimeout(() => {
+        isDrawing = false;
+        if (selectedCards.length >= spread.count) {
+          revealAllReadings();
+        }
+      }, 700);
+    }
+
+    /* =========================================================================
+       6. Reveal Readings & 3D Flipping
+       ========================================================================= */
+    function revealAllReadings() {
+      playCelestialChime(784, 2, 'triangle');
+      document.getElementById('deckSection').classList.add('hidden');
+      const readingSection = document.getElementById('readingSection');
+      readingSection.classList.remove('hidden');
+
+      document.getElementById('readingQuestionHeadline').innerText = `「 ${currentQuestion} 」`;
+
+      const cardsContainer = document.getElementById('cardsDisplayContainer');
+      cardsContainer.innerHTML = '';
+
+      selectedCards.forEach((item, index) => {
+        const cardBox = document.createElement('div');
+        cardBox.className = 'flex flex-col items-center';
+
+        const interpretation = item.isReversed ? item.cardData.reversed : item.cardData.upright;
+        const statusLabel = item.isReversed ? '逆位 (Reversed)' : '正位 (Upright)';
+        const statusColor = item.isReversed ? 'text-amber-400 bg-amber-950/60 border-amber-400/40' : 'text-emerald-300 bg-emerald-950/60 border-emerald-400/40';
+
+        cardBox.innerHTML = `
+          <!-- Position Title Badge -->
+          <div class="mb-3 px-3 py-1 rounded-full bg-purple-900/60 border border-purple-400/30 text-amber-200 text-xs font-semibold tracking-wider text-center">
+            ${item.role}
+          </div>
+
+          <!-- 3D Flippable Card Frame -->
+          <div class="perspective-1000 w-56 sm:w-64 h-84 sm:h-96 relative group cursor-pointer" onclick="openDetailModal(${index})">
+            <div id="flipCardInner-${index}" class="w-full h-full transform-style-3d transition-transform duration-1000 ease-out relative">
+              
+              <!-- Card Back -->
+              <div class="absolute inset-0 w-full h-full rounded-2xl tarot-back-pattern gold-border p-3 shadow-2xl flex flex-col justify-between items-center backface-hidden">
+                <div class="w-full flex justify-between text-xs text-amber-300/50"><span>✦</span><span>✦</span></div>
+                <div class="w-16 h-16 rounded-full border border-amber-300/40 flex items-center justify-center text-amber-300">
+                  <i data-lucide="sparkles" class="w-8 h-8"></i>
+                </div>
+                <div class="text-xs tracking-widest text-amber-300/70 font-cinzel">ARCANUM</div>
+              </div>
+
+              <!-- Card Front -->
+              <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#1b1035] via-[#120a26] to-[#0a0518] gold-border p-4 shadow-2xl flex flex-col justify-between items-center rotate-y-180 backface-hidden gold-glow ${item.isReversed ? 'border-amber-400/60' : 'border-amber-300/60'}">
+                
+                <!-- Card Top Info -->
+                <div class="w-full flex justify-between items-center text-xs text-amber-300/80 font-cinzel">
+                  <span>${item.cardData.roman}</span>
+                  <span class="text-[10px] tracking-wider text-purple-300/70">${item.cardData.planet}</span>
+                </div>
+
+                <!-- Card Center Symbol Illustration -->
+                <div class="my-auto flex flex-col items-center justify-center transform transition-transform duration-500 ${item.isReversed ? 'rotate-180' : ''}">
+                  <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-purple-900/60 to-amber-500/20 border border-amber-300/40 flex items-center justify-center text-amber-200 mb-2 shadow-inner">
+                    <i data-lucide="${item.cardData.icon}" class="w-10 h-10 sm:w-12 sm:h-12 text-amber-300"></i>
+                  </div>
+                  <span class="text-2xl text-amber-300/90 font-cinzel">${item.cardData.symbol}</span>
+                </div>
+
+                <!-- Card Bottom Name -->
+                <div class="w-full text-center pt-2 border-t border-purple-500/20">
+                  <h4 class="text-base sm:text-lg font-bold text-amber-100 tracking-wider">${item.cardData.name}</h4>
+                  <p class="text-[10px] tracking-wider text-purple-300/70 uppercase">${item.cardData.eng}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card Summary Underneath -->
+          <div class="mt-4 text-center max-w-xs">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusColor} mb-2">
+              ${statusLabel}
+            </span>
+            <p class="text-xs text-amber-200 font-medium mb-1">${interpretation.title}</p>
+            <p class="text-xs text-purple-300/80 line-clamp-3 leading-relaxed">${interpretation.meaning}</p>
+            <button onclick="openDetailModal(${index})" class="mt-2 text-xs text-amber-300/90 hover:text-amber-200 underline underline-offset-4 flex items-center justify-center gap-1 mx-auto">
+              <span>深入牌義與指引</span>
+              <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            </button>
+          </div>
+        `;
+
+        cardsContainer.appendChild(cardBox);
+
+        // Trigger 3D flip animation sequentially
+        setTimeout(() => {
+          const inner = document.getElementById(`flipCardInner-${index}`);
+          if (inner) {
+            inner.style.transform = 'rotateY(180deg)';
+            playCelestialChime(500 + index * 180, 0.9);
+          }
+        }, 350 + index * 300);
+      });
+
+      // Build Synthesis Summary
+      generateSynthesis();
+      lucide.createIcons();
+    }
+
+    /* =========================================================================
+       7. Interpretation Synthesis & Details
+       ========================================================================= */
+    function generateSynthesis() {
+      const synTextEl = document.getElementById('spreadSynthesisText');
+      const kwContainer = document.getElementById('readingKeywords');
+
+      let allKeywords = [];
+      let summaryText = "";
+
+      selectedCards.forEach(item => {
+        const info = item.isReversed ? item.cardData.reversed : item.cardData.upright;
+        allKeywords.push(...info.keywords);
+      });
+
+      // Remove duplicate keywords & slice top 8
+      const uniqueKeywords = [...new Set(allKeywords)].slice(0, 8);
+
+      if (currentSpreadKey === 'single') {
+        const item = selectedCards[0];
+        const info = item.isReversed ? item.cardData.reversed : item.cardData.upright;
+        summaryText = `【星辰回響】：就你所掛念的「${currentQuestion}」，抽出的《${item.cardData.name}・${item.isReversed ? '逆位' : '正位'}》指示當前關鍵在於「${info.title}」。${info.advice} 請放寬心靈，這張牌提醒你將焦點回歸自身本源力量。`;
+      } else if (currentSpreadKey === 'three') {
+        const [past, pres, fut] = selectedCards;
+        summaryText = `【時流解析】：回望過去，受到《${past.cardData.name}》的基石洗禮；在當下此刻，《${pres.cardData.name}・${pres.isReversed ? '逆位' : '正位'}》呈現出你正在整合的關鍵焦點；而未來的能量正向《${fut.cardData.name}》延伸。宇宙提示你：接納過往的沈澱，不抗拒當前的修煉，命運的下一步將撥雲見日。`;
+      } else {
+        const [self, other, bond] = selectedCards;
+        summaryText = `【心靈鏡照】：在彼此的能量場中，你的心境呼應著《${self.cardData.name}》，對方的狀態則倒映出《${other.cardData.name}》。兩人靈性羈絆的指引牌為《${bond.cardData.name}・${bond.isReversed ? '逆位' : '正位'}》。請以愛與真誠為引，照料彼此的脆弱，放下控制心，讓信任自然流轉。`;
+      }
+
+      synTextEl.innerText = summaryText;
+
+      kwContainer.innerHTML = '<span class="text-amber-300 font-semibold">靈性關鍵字：</span>';
+      uniqueKeywords.forEach(kw => {
+        const tag = document.createElement('span');
+        tag.className = 'px-2 py-0.5 rounded-md bg-purple-900/50 border border-purple-500/30 text-purple-200';
+        tag.innerText = `#${kw}`;
+        kwContainer.appendChild(tag);
+      });
+    }
+
+    function openDetailModal(cardIndex) {
+      const item = selectedCards[cardIndex];
+      if (!item) return;
+      playCelestialChime(660, 0.5);
+
+      const interpretation = item.isReversed ? item.cardData.reversed : item.cardData.upright;
+      const modalContent = document.getElementById('modalContent');
+
+      modalContent.innerHTML = `
+        <div class="text-center pb-4 border-b border-purple-500/20">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-900/60 border border-amber-300/40 text-amber-300 text-xs mb-2">
+            <span>${item.role}</span>
+          </div>
+          <h3 class="text-2xl font-bold text-amber-100">${item.cardData.name} (${item.cardData.roman})</h3>
+          <p class="text-xs uppercase tracking-wider text-purple-300/70">${item.cardData.eng}・${item.cardData.planet}</p>
+          <div class="mt-2 inline-block px-3 py-0.5 rounded-full text-xs font-semibold border ${item.isReversed ? 'text-amber-400 bg-amber-950/60 border-amber-400/40' : 'text-emerald-300 bg-emerald-950/60 border-emerald-400/40'}">
+            ${item.isReversed ? '逆位 (Reversed)' : '正位 (Upright)'}：${interpretation.title}
+          </div>
+        </div>
+
+        <div class="py-4 space-y-4 text-sm text-purple-100">
+          <div>
+            <h4 class="text-xs font-semibold text-amber-300 tracking-wider mb-1 flex items-center gap-1">
+              <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+              <span>牌面象徵與靈魂牌義</span>
+            </h4>
+            <p class="text-purple-200/90 leading-relaxed font-light">${interpretation.meaning}</p>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-semibold text-amber-300 tracking-wider mb-1 flex items-center gap-1">
+              <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+              <span>宇宙神聖指引</span>
+            </h4>
+            <p class="text-purple-200/90 leading-relaxed font-light">${interpretation.advice}</p>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-semibold text-amber-300 tracking-wider mb-1 flex items-center gap-1">
+              <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+              <span>相關意涵關鍵字</span>
+            </h4>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              ${interpretation.keywords.map(kw => `<span class="px-2 py-0.5 rounded bg-purple-900/60 border border-purple-500/40 text-[11px] text-amber-200">#${kw}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 text-center border-t border-purple-500/20">
+          <button onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-amber-200 text-xs font-semibold tracking-wider transition border border-purple-400/30">
+            合十・敬謝啟示
+          </button>
+        </div>
+      `;
+
+      const modal = document.getElementById('detailModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('detailModal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // Dismiss modal on background click
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target.id === 'detailModal') {
+        closeModal();
+      }
+    });
+
+    /* =========================================================================
+       8. Copy / Share & Reset
+       ========================================================================= */
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3000);
+    }
+
+    function copyReadingSummary() {
+      let text = `【星穹秘境・塔羅占卜解讀】\n`;
+      text += `✦ 詢問意念：${currentQuestion}\n`;
+      text += `✦ 牌陣類型：${SPREADS[currentSpreadKey].name}\n\n`;
+
+      selectedCards.forEach(item => {
+        const info = item.isReversed ? item.cardData.reversed : item.cardData.upright;
+        text += `【${item.role}】：${item.cardData.name} (${item.isReversed ? '逆位' : '正位'})\n`;
+        text += `・核心牌義：${info.title}\n`;
+        text += `・啟示引導：${info.advice}\n\n`;
+      });
+
+      const syn = document.getElementById('spreadSynthesisText').innerText;
+      text += `${syn}\n\n願星辰之光照耀前路 ✨`;
+
+      // Fallback copy using hidden textarea
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('占卜解讀已成功複製至剪貼簿！');
+        playCelestialChime(880, 0.6);
+      } catch (err) {
+        showToast('複製失敗，請手動選取文字');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    function resetReading() {
+      playCelestialChime(440, 0.4);
+      selectedCards = [];
+      document.getElementById('readingSection').classList.add('hidden');
+      document.getElementById('deckSection').classList.add('hidden');
+      document.getElementById('prepSection').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* Initialize Application on Load */
+    window.onload = function () {
+      resizeCanvas();
+      renderNebula();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

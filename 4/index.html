@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 萌萌一週星座運勢 ✨</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Zen Maru Gothic / Fredoka -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'cute-pink': '#FFB7C5',
+            'cute-purple': '#E8C5E5',
+            'cute-blue': '#B5E2FA',
+            'cute-yellow': '#FDFD96',
+            'cute-green': '#C1E1C1',
+            'cute-cream': '#FFF9EC',
+            'cute-bg': '#FFF5F8',
+          },
+          fontFamily: {
+            cute: ['"Zen Maru Gothic"', '"Fredoka"', 'sans-serif'],
+          },
+          animation: {
+            'bounce-slow': 'bounce 3s infinite',
+            'wiggle': 'wiggle 1s ease-in-out infinite',
+            'float': 'float 3s ease-in-out infinite',
+            'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+          },
+          keyframes: {
+            wiggle: {
+              '0%, 100%': { transform: 'rotate(-3deg)' },
+              '50%': { transform: 'rotate(3deg)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            pop: {
+              '0%': { transform: 'scale(0.8)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background-color: #FFF5F8;
+      background-image: radial-gradient(#FFD1DC 1.5px, transparent 1.5px), radial-gradient(#FFD1DC 1.5px, #FFF5F8 1.5px);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+    }
+    
+    .bubble-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 3px solid #FFF;
+      box-shadow: 0 10px 25px -5px rgba(255, 182, 197, 0.4), 0 8px 10px -6px rgba(255, 182, 197, 0.2);
+    }
+
+    .sign-btn {
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .sign-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    .sign-btn.active {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: 0 0 0 4px #FFB7C5, 0 8px 20px rgba(255, 182, 197, 0.6);
+    }
+
+    /* Custom scrollbar for cute aesthetics */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FFF0F5;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FFB7C5;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FF9AA2;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-700 pb-12 font-cute selection:bg-pink-200">
+
+  <!-- Floating Sparkles Decor -->
+  <div class="fixed top-10 left-5 text-2xl text-pink-300 animate-float pointer-events-none">✨</div>
+  <div class="fixed top-1/3 right-8 text-3xl text-purple-300 animate-float pointer-events-none" style="animation-delay: 1s;">🌟</div>
+  <div class="fixed bottom-12 left-10 text-2xl text-yellow-300 animate-float pointer-events-none" style="animation-delay: 2s;">☁️</div>
+
+  <!-- Main Container -->
+  <div class="max-w-5xl mx-auto px-4 pt-6">
+
+    <!-- Header Section -->
+    <header class="text-center my-6 relative">
+      <div class="inline-block bg-white/80 backdrop-blur-md px-6 py-2 rounded-full border-2 border-pink-200 shadow-sm mb-3">
+        <span class="text-sm font-bold text-pink-500 tracking-wider">
+          <i class="fa-solid fa-calendar-week mr-1"></i> <span id="week-date-range">本週運勢特輯</span>
+        </span>
+      </div>
+      
+      <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight flex items-center justify-center gap-3">
+        <span class="animate-wiggle inline-block">🌸</span>
+        <span class="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+          萌萌一週星座運勢
+        </span>
+        <span class="animate-wiggle inline-block" style="animation-delay: 0.5s;">🐱</span>
+      </h1>
+      <p class="text-slate-500 mt-2 text-sm md:text-base">讓軟萌星座神仙為你揭曉本週幸運密碼吧！(⁠*⁠＾⁠3⁠＾⁠)⁠/⁠～⁠♡</p>
+    </header>
+
+    <!-- Category Filter / Search (Optional Cute Decor) -->
+    <div class="flex justify-center gap-2 mb-6 text-xs md:text-sm font-bold">
+      <button onclick="filterElement('all')" class="element-filter active px-4 py-1.5 rounded-full bg-pink-400 text-white shadow-md hover:opacity-90 transition">全部星座</button>
+      <button onclick="filterElement('火')" class="element-filter px-4 py-1.5 rounded-full bg-white text-rose-400 shadow-sm border border-rose-200 hover:bg-rose-50 transition">🔥 火象</button>
+      <button onclick="filterElement('土')" class="element-filter px-4 py-1.5 rounded-full bg-white text-emerald-500 shadow-sm border border-emerald-200 hover:bg-emerald-50 transition">🌱 土象</button>
+      <button onclick="filterElement('風')" class="element-filter px-4 py-1.5 rounded-full bg-white text-sky-500 shadow-sm border border-sky-200 hover:bg-sky-50 transition">🌬️ 風象</button>
+      <button onclick="filterElement('水')" class="element-filter px-4 py-1.5 rounded-full bg-white text-purple-400 shadow-sm border border-purple-200 hover:bg-purple-50 transition">💧 水象</button>
+    </div>
+
+    <!-- Zodiac Selector Cards Grid -->
+    <section class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-8" id="zodiac-grid">
+      <!-- Zodiac buttons rendered dynamically via JS -->
+    </section>
+
+    <!-- Main Fortune Detail Card -->
+    <main id="fortune-container" class="bubble-card rounded-3xl p-6 md:p-8 mb-8 transition-all duration-300">
+      <!-- Dynamic content rendered via JS -->
+    </main>
+
+    <!-- Extra Interactive Section: Cute Fortune Cookie / Daily Mini Tarot -->
+    <section class="bubble-card rounded-3xl p-6 md:p-8 text-center relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-100 rounded-full blur-2xl -z-10"></div>
+      <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-yellow-100 rounded-full blur-2xl -z-10"></div>
+      
+      <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
+        <span>🥠</span> 萌萌幸運抽籤筒
+      </h3>
+      <p class="text-slate-500 text-sm mb-5">感到猶豫不決嗎？敲敲幸運籤筒，獲取今日的暖心小語吧！</p>
+
+      <div id="draw-result" class="hidden mb-5 p-4 bg-amber-50/80 border-2 border-dashed border-amber-300 rounded-2xl max-w-md mx-auto animate-pop">
+        <div class="text-3xl mb-1" id="draw-emoji">🌟</div>
+        <div class="font-bold text-amber-800 text-lg mb-1" id="draw-title">大吉・超級好運</div>
+        <p class="text-slate-600 text-sm" id="draw-desc">今天適合嘗試新事物，幸運神仙正偷偷眷顧著你喔！</p>
+      </div>
+
+      <button id="draw-btn" onclick="drawFortune()" class="bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 transition">
+        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 搖一搖抽幸運籤
+      </button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center mt-12 text-slate-400 text-xs">
+      <p class="mb-1">✨ 萌萌一週星座運勢 ✨  &copy; 2026 Daily Cute Horoscope</p>
+      <p>願每一天都充滿陽光與可愛 (✿&#32;◡&#32;‿&#32;◡&#32;)</p>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript Code -->
+  <script>
+    // 12 星座詳細資料數據庫
+    const zodiacData = [
+      {
+        id: "aries",
+        name: "白羊座",
+        enName: "Aries",
+        date: "03/21 - 04/19",
+        element: "火",
+        bgLight: "bg-rose-50",
+        borderColor: "border-rose-300",
+        textColor: "text-rose-500",
+        badgeBg: "bg-rose-100",
+        icon: "♈",
+        avatar: "🐶",
+        mascot: "活潑小柴犬",
+        overallScore: 4,
+        summary: "本週能量滿滿！行動力極強的你，非常適合展開全新的計畫，勇敢衝刺吧！",
+        love: "單身者可能在運動或社團活動中遇到讓你心動的對象；有伴者感情升溫，適合安排戶外小約會。",
+        career: "工作效率提升顯著，先前的卡關難題這週迎刃為解，容易獲得長官獎勵！",
+        wealth: "財運穩定向上，適合規劃小額儲蓄，但要小心因為一時衝動買了不需要的小玩具。",
+        health: "精神充沛，但要注意運動前的拉筋放鬆，避免小扭傷喔！",
+        luckyColor: "蜜桃粉",
+        luckyNumber: "7",
+        luckyItem: "繽紛運動水壺",
+        dayForecast: ["🌕 運勢旺", "⛅ 順遂", "🌕 超幸運", "🌧️ 稍有壓力", "⛅ 平穩", "🌕 活力滿滿", "⛅ 悠閒"]
+      },
+      {
+        id: "taurus",
+        name: "金牛座",
+        enName: "Taurus",
+        date: "04/20 - 05/20",
+        element: "土",
+        bgLight: "bg-emerald-50",
+        borderColor: "border-emerald-300",
+        textColor: "text-emerald-600",
+        badgeBg: "bg-emerald-100",
+        icon: "♉",
+        avatar: "🐮",
+        mascot: "懶洋洋小花牛",
+        overallScore: 5,
+        summary: "這週是收穫滿滿的一週～腳踏實地的努力終於看見豐碩成果，好好犒賞一下自己吧！",
+        love: "感情走甜美平穩路線，一起下廚手作美食或踏青能讓彼此心意更加貼近。",
+        career: "思路清晰、做事條理分明，處理複雜數據與合約非常有優勢，表現十分穩健。",
+        wealth: "偏財運很不錯，有機會收到意外的小禮物或抽中紅包，食神降臨有美食運！",
+        health: "注意腸胃消化，享受美食之餘也要記得多補充蔬菜水果喔。",
+        luckyColor: "奶油黃",
+        luckyNumber: "2",
+        luckyItem: "造型馬克杯",
+        dayForecast: ["⛅ 平穩", "🌕 財運佳", "🌕 幸運爆棚", "⛅ 順遂", "⛅ 平穩", "🌕 幸福感滿滿", "⛅ 放鬆"]
+      },
+      {
+        id: "gemini",
+        name: "雙子座",
+        enName: "Gemini",
+        date: "05/21 - 06/21",
+        element: "風",
+        bgLight: "bg-sky-50",
+        borderColor: "border-sky-300",
+        textColor: "text-sky-500",
+        badgeBg: "bg-sky-100",
+        icon: "♊",
+        avatar: "🐱",
+        mascot: "好奇雙胞胎貓咪",
+        overallScore: 3,
+        summary: "點子百出、靈感大爆發的一週！不過要注意別同時開太多戰場，專注才能圓滿完成。",
+        love: "桃花運朵朵開，幽默談吐吸引不少注目；有伴者多與對方聊聊新鮮事，增添生活趣味。",
+        career: "適合進行腦力激盪與跨部門溝通，你的新奇想法會帶來令人驚豔的突破！",
+        wealth: "開銷略大，容易因為社交聚會或購買文具小物而花費增加，要稍微控管預算。",
+        health: "大腦運轉過度容易失眠，睡前試著放下手機，聽聽舒緩的輕音樂。",
+        luckyColor: "薄荷綠",
+        luckyNumber: "5",
+        luckyItem: "可愛手帳本",
+        dayForecast: ["🌧️ 略顯疲憊", "🌕 靈感大爆發", "⛅ 順遂", "🌕 社交運佳", "⛅ 平穩", "🌧️ 步調混亂", "⛅ 愜意"]
+      },
+      {
+        id: "cancer",
+        name: "巨蟹座",
+        enName: "Cancer",
+        date: "06/22 - 07/22",
+        element: "水",
+        bgLight: "bg-purple-50",
+        borderColor: "border-purple-300",
+        textColor: "text-purple-500",
+        badgeBg: "bg-purple-100",
+        icon: "♋",
+        avatar: "🦀",
+        mascot: "溫馨小螃蟹",
+        overallScore: 4,
+        summary: "直覺特別敏銳的一週，身邊的朋友都想找你傾訴，你的溫暖治癒了大家！",
+        love: "渴望溫馨的歸屬感，貼心的小舉動能讓另一半大受感動；單身者易在熟悉圈子遇到暖男/暖女。",
+        career: "團隊合作默契佳，扮演溫柔協調者的角色，能順利化解團隊中的小摩擦。",
+        wealth: "居家生活相關的開銷增加，買些讓家裡更舒適的小飾品能提升總體運勢。",
+        health: "情緒容易波動，多給自己一點獨處放鬆的時間，泡個香氛熱水澡吧。",
+        luckyColor: "珍珠白",
+        luckyNumber: "6",
+        luckyItem: "香氛蠟燭",
+        dayForecast: ["⛅ 平穩", "⛅ 順遂", "🌕 貴人運佳", "⛅ 平穩", "🌕 溫馨爆棚", "⛅ 順遂", "🌧️ 稍微情緒化"]
+      },
+      {
+        id: "leo",
+        name: "獅子座",
+        enName: "Leo",
+        date: "07/23 - 08/22",
+        element: "火",
+        bgLight: "bg-amber-50",
+        borderColor: "border-amber-300",
+        textColor: "text-amber-600",
+        badgeBg: "bg-amber-100",
+        icon: "♌",
+        avatar: "🦁",
+        mascot: "自信小小獅",
+        overallScore: 5,
+        summary: "舞台就是你的！這週魅力四射，無論走到哪都是全場焦點，大方展現自信吧！",
+        love: "魅力大發散，容易收到直球告白！有伴者多給另一半誇獎，感情會甜如蜜。",
+        career: "領導能力得到發揮機會，大膽提出你的提案，大家都會非常支持你的決定。",
+        wealth: "正財運旺盛，付出多少努力就會得到相應的回報，也可以犒賞自己一件新衣服。",
+        health: "體力充沛，但記得收斂一點霸氣，維持親切微笑能讓運勢更旺！",
+        luckyColor: "太陽金",
+        luckyNumber: "1",
+        luckyItem: "閃亮小飾品",
+        dayForecast: ["🌕 魅力爆棚", "🌕 事業大順", "⛅ 平穩", "🌕 幸運滿滿", "⛅ 順遂", "⛅ 愜意", "🌕 社交焦點"]
+      },
+      {
+        id: "virgo",
+        name: "處女座",
+        enName: "Virgo",
+        date: "08/23 - 09/22",
+        element: "土",
+        bgLight: "bg-teal-50",
+        borderColor: "border-teal-300",
+        textColor: "text-teal-600",
+        badgeBg: "bg-teal-100",
+        icon: "♍",
+        avatar: "🐰",
+        mascot: "細心小萌兔",
+        overallScore: 4,
+        summary: "細心認真的態度讓你獲得滿滿讚譽，整理環境與生活步調能帶來好運！",
+        love: "感情注重細節體驗，為對方準備一份體貼的小禮物或便當，能瞬間拉近距離。",
+        career: "除錯與規劃能力超強，能幫團隊發現被忽略的魔鬼細節，是可靠的神隊友。",
+        wealth: "理財觀念清晰，精打細算能省下一筆不小的開銷，財務狀態相當健康。",
+        health: "注意肩頸僵硬問題，工作定時站起來做做伸展操、活動筋骨。",
+        luckyColor: "薰衣草紫",
+        luckyNumber: "4",
+        luckyItem: "療癒多肉植物",
+        dayForecast: ["⛅ 順遂", "🌕 效率極高", "⛅ 平穩", "🌕 受到讚賞", "⛅ 順遂", "🌧️ 稍有強迫症", "⛅ 舒活放鬆"]
+      },
+      {
+        id: "libra",
+        name: "天秤座",
+        enName: "Libra",
+        date: "09/23 - 10/23",
+        element: "風",
+        bgLight: "bg-pink-50",
+        borderColor: "border-pink-300",
+        textColor: "text-pink-500",
+        badgeBg: "bg-pink-100",
+        icon: "♎",
+        avatar: "🐿️",
+        mascot: "優雅小鬆鼠",
+        overallScore: 4,
+        summary: "人際關係和諧美滿，這週非常適合參加聚會或與老朋友敘舊，能獲得許多正能量！",
+        love: "桃花朵朵開，優雅審美讓你格外迷人，約會選擇藝術展覽或質感咖啡廳最加分。",
+        career: "談判與溝通能力突出，能在各方意見中找到完美的平衡點，達成共識。",
+        wealth: "有買漂亮衣服或飾品的衝動，記得量入為出，挑選最划算的心頭好。",
+        health: "維持均衡飲食，多補充水分，保持肌膚水嫩透亮。",
+        luckyColor: "櫻花粉",
+        luckyNumber: "6",
+        luckyItem: "造型隨身鏡",
+        dayForecast: ["🌕 人緣極佳", "⛅ 平穩", "🌕 約會順利", "⛅ 順遂", "🌕 桃花旺盛", "⛅ 平穩", "⛅ 愉快週末"]
+      },
+      {
+        id: "scorpio",
+        name: "天蠍座",
+        enName: "Scorpio",
+        date: "10/24 - 11/21",
+        element: "水",
+        bgLight: "bg-indigo-50",
+        borderColor: "border-indigo-300",
+        textColor: "text-indigo-600",
+        badgeBg: "bg-indigo-100",
+        icon: "♏",
+        avatar: "🦊",
+        mascot: "神祕小狐狸",
+        overallScore: 4,
+        summary: "專注力與洞察力達到頂峰的一週，適合深耕專業領域或學習新技能！",
+        love: "情感深沉而真摯，渴望深度的心靈交流；單身者容易被神秘有內涵的人吸引。",
+        career: "做事專注高效，不受外界噪音打擾，默默耕耘能產出驚人的成果。",
+        wealth: "暗財運不錯，可能有額外的兼職機會或投資小收益，財務穩健增長。",
+        health: "注意保持睡眠充足，別因為沉迷於喜愛的事物而熬夜太晚喔。",
+        luckyColor: "深海藍",
+        luckyNumber: "9",
+        luckyItem: "精緻鋼筆/水筆",
+        dayForecast: ["⛅ 專注度高", "🌕 洞察力佳", "⛅ 平穩", "🌕 財運暗升", "⛅ 順遂", "🌧️ 略顯疲倦", "⛅ 充實自我"]
+      },
+      {
+        id: "sagittarius",
+        name: "射手座",
+        enName: "Sagittarius",
+        date: "11/22 - 12/21",
+        element: "火",
+        bgLight: "bg-orange-50",
+        borderColor: "border-orange-300",
+        textColor: "text-orange-500",
+        badgeBg: "bg-orange-100",
+        icon: "♐",
+        avatar: "馬",
+        mascot: "奔跑小小馬",
+        overallScore: 5,
+        summary: "冒險魂燃燒！本週非常適合規劃小旅行或嘗試從未做過的新事物，驚喜連連！",
+        love: "樂觀開朗的笑容最具殺傷力！有伴者適合安排來場說走就走的輕旅行。",
+        career: "眼界開闊，能提出具前瞻性的方案，適合拓展新業務或參加培訓講座。",
+        wealth: "娛樂相關開銷較多，花錢買快樂之餘，也要記得留一部分作為緊急儲備。",
+        health: "戶外活動增加，注意做好防曬與補水，保持滿滿能量！",
+        luckyColor: "活力橙",
+        luckyNumber: "3",
+        luckyItem: "棒球帽/可愛帽子",
+        dayForecast: ["🌕 驚喜連連", "⛅ 順遂", "🌕 旅遊運佳", "⛅ 平穩", "🌕 幸運眷顧", "⛅ 歡樂滿滿", "⛅ 充沛活力"]
+      },
+      {
+        id: "capricorn",
+        name: "摩羯座",
+        enName: "Capricorn",
+        date: "12/22 - 01/19",
+        element: "土",
+        bgLight: "bg-slate-100",
+        borderColor: "border-slate-300",
+        textColor: "text-slate-600",
+        badgeBg: "bg-slate-200",
+        icon: "♑",
+        avatar: "🐐",
+        mascot: "踏實小企鵝",
+        overallScore: 4,
+        summary: "目標清晰，一步一腳印邁進！先前積累的努力將在本週看到具體回報。",
+        love: "表現較為含蓄，用實際行動照顧對方勝過甜言蜜語，長久陪伴最真摯。",
+        career: "工作責任感強，獲得領導高度信任，有機會承接重要專案或任務。",
+        wealth: "正財運穩健，儲蓄目標穩步推進，適合審視財務規劃與理財方案。",
+        health: "容易因為工作忘記休息，記得適時站起來拉伸，保護腰椎健康的同時放鬆心情。",
+        luckyColor: "大地棕",
+        luckyNumber: "8",
+        luckyItem: "保溫咖啡杯",
+        dayForecast: ["⛅ 踏實推進", "🌕 成果豐碩", "⛅ 平穩", "🌕 獲得肯定", "⛅ 順遂", "⛅ 理財有成", "🌧️ 需要休息"]
+      },
+      {
+        id: "aquarius",
+        name: "水瓶座",
+        enName: "Aquarius",
+        date: "01/20 - 02/18",
+        element: "风",
+        bgLight: "bg-cyan-50",
+        borderColor: "border-cyan-300",
+        textColor: "text-cyan-600",
+        badgeBg: "bg-cyan-100",
+        icon: "♒",
+        avatar: "🐬",
+        mascot: "奇幻小水母",
+        overallScore: 3,
+        summary: "靈感天馬行空的一週，不受框架束縛的思考會帶給你意想不到的驚喜突破！",
+        love: "喜歡獨立又親密的相處模式，尋找能與你心靈共鳴的夥伴；單身者容易遭遇奇妙邂逅。",
+        career: "傳統做法讓你感到枯燥，嘗試用創新的科技工具或新方法能大大提升效率。",
+        wealth: "容易對稀奇古怪的新科技或文創商品感興趣，小心荷包失血過快喔。",
+        health: "注意眼部疲勞，多看遠方綠色植物，少盯著電子螢幕。",
+        luckyColor: "天藍色",
+        luckyNumber: "11",
+        luckyItem: "造型藍芽耳機",
+        dayForecast: ["⛅ 靈光一閃", "🌧️ 容易分心", "🌕 創新突破", "⛅ 平穩", "🌕 奇妙邂逅", "⛅ 平穩", "⛅ 自由自在"]
+      },
+      {
+        id: "pisces",
+        name: "雙魚座",
+        enName: "Pisces",
+        date: "02/19 - 03/20",
+        element: "水",
+        bgLight: "bg-rose-50",
+        borderColor: "border-pink-300",
+        textColor: "text-pink-500",
+        badgeBg: "bg-pink-100",
+        icon: "♓",
+        avatar: "🐟",
+        mascot: "夢幻粉紅小魚",
+        overallScore: 5,
+        summary: "浪漫與幸運交織的一週！同理心與藝術靈感大爆發，身邊充滿溫柔愛意。",
+        love: "桃花運爆表！浪漫指數直線上升，單身者有機會遇到如偶像劇般浪漫的相遇。",
+        career: "藝術創作或文案策劃運勢極佳，展現優秀的共情能力，能打動客戶與同事。",
+        wealth: "幸運女神眷顧，容易收到小驚喜禮物，手氣也很不錯喔！",
+        health: "保持規律作息，多吃些暖心甜點或溫熱飲品，心情會特別舒暢。",
+        luckyColor: "珊瑚粉",
+        luckyNumber: "9",
+        luckyItem: "毛絨絨鑰匙圈",
+        dayForecast: ["🌕 幸運爆棚", "🌕 浪漫滿屋", "⛅ 順遂", "🌕 靈感湧現", "⛅ 平穩", "🌕 驚喜連連", "⛅ 輕鬆舒適"]
+      }
+    ];
+
+    // 幸運籤詩數據
+    const fortuneStickData = [
+      { emoji: "🎉", title: "大吉・超級好運", desc: "幸運神仙正在你頭上撒花！今天做什麼事情都會特別順利喔！" },
+      { emoji: "🍬", title: "中吉・甜甜甜蜜", desc: "今天會遇到讓你嘴角上揚的小甜頭，保持微笑迎接驚喜吧！" },
+      { emoji: "☕", title: "小吉・平淡是福", desc: "放慢步調，喝杯好茶，平穩順利就是最棒的幸運！" },
+      { emoji: "🌈", title: "轉運吉・雨過天晴", desc: "之前的煩惱即將煙消雲散，美好的彩虹馬上就要出現囉！" },
+      { emoji: "🧸", title: "治癒吉・貴人相助", desc: "今天身邊會出現像大熊熊一樣溫暖的貴人給予你幫助！" }
+    ];
+
+    let currentSelectedSign = "aries";
+
+    // 取得當前週的日期範圍顯示
+    function setWeekDateRange() {
+      const now = new Date();
+      const first = now.getDate() - now.getDay() + 1; // Monday
+      const last = first + 6; // Sunday
+
+      const monday = new Date(now.setDate(first));
+      const sunday = new Date(now.setDate(last));
+
+      const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
+      document.getElementById("week-date-range").innerText = `${formatDate(monday)} - ${formatDate(sunday)} 本週運勢`;
+    }
+
+    // 渲染星座選擇按鈕
+    function renderZodiacGrid(filter = 'all') {
+      const grid = document.getElementById('zodiac-grid');
+      grid.innerHTML = '';
+
+      zodiacData.forEach(item => {
+        if (filter !== 'all' && item.element !== filter) return;
+
+        const isActive = item.id === currentSelectedSign;
+        const btn = document.createElement('button');
+        btn.className = `sign-btn bubble-card rounded-2xl p-3 flex flex-col items-center justify-center text-center cursor-pointer ${isActive ? 'active bg-white' : 'hover:bg-white/90'}`;
+        btn.onclick = () => selectZodiac(item.id);
+
+        btn.innerHTML = `
+          <div class="text-3xl mb-1">${item.avatar}</div>
+          <div class="font-bold text-slate-800 text-sm">${item.name}</div>
+          <div class="text-[10px] text-slate-400 font-sans">${item.date}</div>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    // 切換選取的星座並更新視圖
+    function selectZodiac(id) {
+      currentSelectedSign = id;
+      renderZodiacGrid(getCurrentFilter());
+      renderFortuneDetail(id);
+    }
+
+    // 獲取當前 Element Filter
+    function getCurrentFilter() {
+      const activeFilterBtn = document.querySelector('.element-filter.bg-pink-400');
+      if (!activeFilterBtn) return 'all';
+      const text = activeFilterBtn.innerText;
+      if (text.includes('火')) return '火';
+      if (text.includes('土')) return '土';
+      if (text.includes('風')) return '風';
+      if (text.includes('水')) return '水';
+      return 'all';
+    }
+
+    // 元素分類篩選器點擊事件
+    function filterElement(element) {
+      const btns = document.querySelectorAll('.element-filter');
+      btns.forEach(btn => {
+        btn.className = "element-filter px-4 py-1.5 rounded-full bg-white text-slate-500 shadow-sm border border-slate-200 hover:bg-slate-50 transition";
+      });
+
+      event.target.className = "element-filter active px-4 py-1.5 rounded-full bg-pink-400 text-white shadow-md hover:opacity-90 transition";
+      renderZodiacGrid(element);
+    }
+
+    // 生成星星 HTML
+    function getStars(score) {
+      let stars = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= score) {
+          stars += `<i class="fa-solid fa-star text-amber-400 text-lg"></i>`;
+        } else {
+          stars += `<i class="fa-regular fa-star text-slate-300 text-lg"></i>`;
+        }
+      }
+      return stars;
+    }
+
+    // 渲染星座運勢詳細卡片
+    function renderFortuneDetail(id) {
+      const data = zodiacData.find(item => item.id === id);
+      const container = document.getElementById('fortune-container');
+
+      const days = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
+
+      container.innerHTML = `
+        <div class="animate-pop">
+          <!-- Top Header Info -->
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-pink-100 pb-6 mb-6">
+            <div class="flex items-center gap-4 text-center md:text-left">
+              <div class="w-20 h-20 rounded-3xl ${data.bgLight} border-2 ${data.borderColor} flex items-center justify-center text-4xl shadow-inner relative">
+                ${data.avatar}
+                <span class="absolute -bottom-2 -right-2 ${data.badgeBg} ${data.textColor} text-xs font-bold px-2 py-0.5 rounded-full border border-white shadow-sm">
+                  ${data.element}象
+                </span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                  <h2 class="text-2xl md:text-3xl font-black text-slate-800">${data.name}</h2>
+                  <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">${data.enName}</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${data.date} ｜ 吉祥物：${data.mascot}</p>
+                <div class="flex items-center gap-2 mt-2 justify-center md:justify-start">
+                  <span class="text-xs font-bold text-slate-600">整體幸運指數：</span>
+                  <div class="flex gap-0.5">${getStars(data.overallScore)}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lucky Items Box -->
+            <div class="flex gap-3 bg-white/90 p-3.5 rounded-2xl border border-pink-100 shadow-sm w-full md:w-auto justify-around">
+              <div class="text-center px-3">
+                <div class="text-[11px] text-slate-400 mb-1"><i class="fa-solid fa-palette text-pink-400 mr-1"></i>幸運色</div>
+                <div class="font-bold text-slate-700 text-sm">${data.luckyColor}</div>
+              </div>
+              <div class="w-px bg-slate-100"></div>
+              <div class="text-center px-3">
+                <div class="text-[11px] text-slate-400 mb-1"><i class="fa-solid fa-clover text-emerald-400 mr-1"></i>幸運數字</div>
+                <div class="font-bold text-slate-700 text-sm">${data.luckyNumber}</div>
+              </div>
+              <div class="w-px bg-slate-100"></div>
+              <div class="text-center px-3">
+                <div class="text-[11px] text-slate-400 mb-1"><i class="fa-solid fa-gift text-purple-400 mr-1"></i>幸運小物</div>
+                <div class="font-bold text-slate-700 text-sm">${data.luckyItem}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall Summary -->
+          <div class="bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 p-4 rounded-2xl mb-6 border border-pink-200/50">
+            <h3 class="font-bold text-slate-800 text-base mb-1 flex items-center gap-2">
+              <span class="text-lg">📢</span> 本週總體提示
+            </h3>
+            <p class="text-slate-600 text-sm leading-relaxed">${data.summary}</p>
+          </div>
+
+          <!-- 4 Detailed Aspects Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <!-- Love -->
+            <div class="bg-white/80 p-4 rounded-2xl border border-rose-100 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-sm font-bold">💖</span>
+                <h4 class="font-bold text-slate-800">愛情運勢</h4>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${data.love}</p>
+            </div>
+
+            <!-- Career -->
+            <div class="bg-white/80 p-4 rounded-2xl border border-sky-100 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 rounded-full bg-sky-100 text-sky-500 flex items-center justify-center text-sm font-bold">💼</span>
+                <h4 class="font-bold text-slate-800">事業 / 學業運</h4>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${data.career}</p>
+            </div>
+
+            <!-- Wealth -->
+            <div class="bg-white/80 p-4 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center text-sm font-bold">💰</span>
+                <h4 class="font-bold text-slate-800">財富運勢</h4>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${data.wealth}</p>
+            </div>
+
+            <!-- Health -->
+            <div class="bg-white/80 p-4 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center text-sm font-bold">🌱</span>
+                <h4 class="font-bold text-slate-800">健康與情緒</h4>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${data.health}</p>
+            </div>
+          </div>
+
+          <!-- Weekly Daily Mini Forecast -->
+          <div>
+            <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center gap-2">
+              <span>📅</span> 七日運勢走勢圖
+            </h3>
+            <div class="grid grid-cols-7 gap-1.5 text-center">
+              ${days.map((day, idx) => `
+                <div class="bg-white/90 p-2.5 rounded-xl border border-pink-100 shadow-sm">
+                  <div class="text-[11px] font-bold text-slate-400 mb-1">${day}</div>
+                  <div class="text-xs font-bold text-slate-700">${data.dayForecast[idx]}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 抽籤互動功能
+    function drawFortune() {
+      const btn = document.getElementById('draw-btn');
+      const result = document.getElementById('draw-result');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> 誠心祈禱中...`;
+
+      setTimeout(() => {
+        const randomItem = fortuneStickData[Math.floor(Math.random() * fortuneStickData.length)];
+        
+        document.getElementById('draw-emoji').innerText = randomItem.emoji;
+        document.getElementById('draw-title').innerText = randomItem.title;
+        document.getElementById('draw-desc').innerText = randomItem.desc;
+
+        result.classList.remove('hidden');
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        btn.innerHTML = `<i class="fa-solid fa-rotate-right mr-2"></i> 再抽一次`;
+      }, 800);
+    }
+
+    // 頁面初始化
+    window.onload = function() {
+      setWeekDateRange();
+      renderZodiacGrid();
+      renderFortuneDetail(currentSelectedSign);
+    };
+  </script>
+</body>
+</html>
